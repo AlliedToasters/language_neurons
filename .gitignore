@@ -1,0 +1,4 @@
+data/
+__pycache__
+train_lstm.ipynb
+.ipynb_checkpoints/
