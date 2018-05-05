@@ -1,3 +1,5 @@
+# coding=utf-8
+
 import pandas as pd
 import os
 import re
@@ -27,10 +29,10 @@ def update_progress(progress):
     sys.stdout.write(text)
     sys.stdout.flush()
 
-def get_text(idx, df=df):
+def get_text(idx, df):
     """Takes idx and df and returns text."""
     path = df.loc[idx].path
-    with open(path, 'r') as f:
+    with open(path, 'r', encoding='utf-8') as f:
         result = f.read()
     return result
 
@@ -62,7 +64,7 @@ if __name__ in '__main__':
     #one bad file: ./data/txt/pl/ep-09-10-22-009.txt
 
     #withold some fraction from every class for validation.
-    test_prop = .05
+    test_prop = .01
     test = pd.DataFrame(columns=cols)
     for lang in df.lang.unique():
         samp = df[df.lang == lang].sample(frac=test_prop, random_state=0)
@@ -72,7 +74,7 @@ if __name__ in '__main__':
     print('documents in training set: ', len(train))
     print('documents in validation set: ', len(test))
 
-    train_path = './data/train.txt'
+    train_path = './data/train{}.txt'
     val_path = './data/val.txt'
     os.system('rm {} {}'.format(train_path, val_path))
 
@@ -86,17 +88,23 @@ if __name__ in '__main__':
         except UnicodeDecodeError:
             print('decode problem at: {}'.format(i))
             print('language: ', row.lang)
-            pass
+            continue
         new_txt = remove_tags(new_txt)
         txt = txt + new_txt
+        if (cnt+1) % 20000 == 0:
+            path = train_path.format(cnt//20000)
+            print('writing section to: ', path)
+            with open(path, 'w+', encoding='utf-8') as f:
+                f.write(txt)
+            txt = ''
         cnt += 1
         prog = cnt/len(train)
         update_progress(prog)
-
-    print('characters in train txt:', len(txt))
-    with open(train_path, 'w+') as f:
+    
+    path = train_path.format((cnt//20000)+1)
+    with open(path, 'w+', encoding='utf-8') as f:
             f.write(txt)
-    print('train file saved at: ', train_path)
+    print('final train file saved at: ', path)
 
     del txt
 
@@ -110,7 +118,7 @@ if __name__ in '__main__':
         except UnicodeDecodeError:
             print('decode problem at: {}'.format(i))
             print('language: ', row.lang)
-            pass
+            continue
         new_txt = remove_tags(new_txt)
         txt = txt + new_txt
         cnt += 1
@@ -118,7 +126,7 @@ if __name__ in '__main__':
         update_progress(prog)
 
     print('characters in validation txt:', len(txt))
-    with open(val_path, 'w+') as f:
+    with open(val_path, 'w+', encoding='utf-8') as f:
             f.write(txt)
     print('validation file saved at: ', val_path)
 
